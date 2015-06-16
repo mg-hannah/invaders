@@ -8,7 +8,7 @@
 
 extern Ship *ship;
 
-Alien::Alien(int startX, int startY, int value, int type) {
+Alien::Alien(int startX, int startY, int value, ALIEN_TYPE type) {
 
     char image_1[50];
     char image_2[50];

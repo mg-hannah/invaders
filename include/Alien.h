@@ -1,5 +1,11 @@
 #include "AlienMissile.h"
 
+typedef enum ALIEN_TYPE {
+    ALIEN_TYPE_TOP,
+    ALIEN_TYPE_MIDDLE,
+    ALIEN_TYPE_BOTTOM
+} ALIEN_TYPE;
+
 class Alien {
 
 private:
@@ -15,7 +21,7 @@ public:
     SDL_Rect pos;
     int visible;
     AlienMissile *missile;
-    Alien(int,int,int,int);
+    Alien(int,int,int,ALIEN_TYPE);
     int getWidth(void);
     int getHeight(void);
     void draw(SDL_Surface *);
@@ -29,7 +35,3 @@ public:
     void moveDown(int);
     bool isBomber(void);
 };
-
-#define ALIEN_TYPE_TOP    0
-#define ALIEN_TYPE_MIDDLE 1
-#define ALIEN_TYPE_BOTTOM 2

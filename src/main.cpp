@@ -165,7 +165,7 @@ int main(int argc, char* args[])
     char image1[50];
     char image2[50];
     char explosion[50];
-    int type;
+    ALIEN_TYPE type;
     bool dirChanged;
     bool newRow;
     int alienSpeed;
