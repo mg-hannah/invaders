@@ -8,9 +8,27 @@
 
 extern Ship *ship;
 
-Alien::Alien(int startX, int startY, int value, char *image_1, char *image_2, char *explosion) {
+Alien::Alien(int startX, int startY, int value, int type) {
+
+    char image_1[50];
+    char image_2[50];
+    char explosion[50];
 
     // Load the images
+    if (type == ALIEN_TYPE_TOP) {
+        strcpy(image_1,"images/alien_blue_1.png"); 
+        strcpy(image_2,"images/alien_blue_2.png"); 
+        strcpy(explosion,"images/alien_explosion.png"); 
+    } else if (type == ALIEN_TYPE_MIDDLE) {
+        strcpy(image_1,"images/alien_green_1.png"); 
+        strcpy(image_2,"images/alien_green_2.png"); 
+        strcpy(explosion,"images/alien_green_explosion.png"); 
+    } else if (type == ALIEN_TYPE_BOTTOM) {
+        strcpy(image_1,"images/alien_purple_1.png"); 
+        strcpy(image_2,"images/alien_purple_2.png"); 
+        strcpy(explosion,"images/alien_purple_explosion.png"); 
+    }
+
     img_a = IMG_Load(image_1);
     img_a = SDL_DisplayFormatAlpha(img_a);
 
@@ -112,4 +130,8 @@ bool Alien::atScreenEdge(int screenWidth, int direction) {
 void Alien::moveDown(int gap) {
     //pos.y += this->getHeight() + gap;
     pos.y += 52;
+}
+
+bool Alien::isBomber() {
+    return bomber;
 }

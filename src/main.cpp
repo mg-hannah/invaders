@@ -165,6 +165,7 @@ int main(int argc, char* args[])
     char image1[50];
     char image2[50];
     char explosion[50];
+    int type;
     bool dirChanged;
     bool newRow;
     int alienSpeed;
@@ -207,25 +208,28 @@ int main(int argc, char* args[])
     for (row = 0; row < 5; row++) {
 
         if (row == 0) {
-            strcpy(image1, "images/alien_blue_1.png");
-            strcpy(image2, "images/alien_blue_2.png");
-            strcpy(explosion, "images/alien_explosion.png");
+            //strcpy(image1, "images/alien_blue_1.png");
+            //strcpy(image2, "images/alien_blue_2.png");
+            //strcpy(explosion, "images/alien_explosion.png");
+            type = ALIEN_TYPE_TOP;
         }
 
         if ((row == 1) || (row == 2)) {
-            strcpy(image1, "images/alien_green_1.png");
-            strcpy(image2, "images/alien_green_2.png");
-            strcpy(explosion, "images/alien_green_explosion.png");
+            //strcpy(image1, "images/alien_green_1.png");
+            //strcpy(image2, "images/alien_green_2.png");
+            //strcpy(explosion, "images/alien_green_explosion.png");
+            type = ALIEN_TYPE_MIDDLE;
         }
         if ((row == 3) || (row == 4)) {
-            strcpy(image1, "images/alien_purple_1.png");
-            strcpy(image2, "images/alien_purple_2.png");
-            strcpy(explosion, "images/alien_purple_explosion.png");
+            //strcpy(image1, "images/alien_purple_1.png");
+            //strcpy(image2, "images/alien_purple_2.png");
+            //strcpy(explosion, "images/alien_purple_explosion.png");
+            type = ALIEN_TYPE_BOTTOM;
         }
 
 
         for (col = 0; col < 5; col++) {
-            aliens[col][row] = new Alien((SCREEN_WIDTH/2-16)+((32+ALIEN_GAP_X)*col), 10+20+((20+ALIEN_GAP_Y)*row), 50, image1, image2, explosion);
+            aliens[col][row] = new Alien((SCREEN_WIDTH/2-16)+((32+ALIEN_GAP_X)*col), 10+20+((20+ALIEN_GAP_Y)*row), 50, type);
         }
     }
 
