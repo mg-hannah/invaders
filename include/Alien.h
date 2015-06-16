@@ -34,4 +34,6 @@ public:
     bool atScreenEdge(int,int);
     void moveDown(int);
     bool isBomber(void);
+    void setBomber(void);
+    int bombTimer;
 };

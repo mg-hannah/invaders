@@ -57,8 +57,13 @@ void drawScreen(void) {
         SDL_BlitSurface(ship->missile->img, NULL, screen, &ship->missile->pos);
     }
 
-    if (aliens[0][4]->missile->visible) {
-        SDL_BlitSurface(aliens[0][4]->missile->img, NULL, screen, &aliens[0][4]->missile->pos);
+   
+    for (y = 0; y < 5; y++) { 
+        for (x = 0; x < 5; x++) { 
+            if (aliens[x][y]->missile->visible) {
+                SDL_BlitSurface(aliens[x][y]->missile->img, NULL, screen, &aliens[x][y]->missile->pos);
+            }
+        }
     }
 
     // Draw the shields
@@ -86,17 +91,27 @@ void collisionDetection() {
         for (x = 0; x < 5; x++) {
             if (aliens[x][y]->collissionDetection()) {
 		score += aliens[x][y]->getPoints();
+
+                // If this alien is hit, need to promote the one above
+                // to be the bomber.
+                if (x > 0) {
+                    aliens[x-1][y]->setBomber();
+                }
             }
         }
     }
 
     // Ship and alien missiles
-    if (aliens[0][4]->missile->visible && !(ship->isHit())) {
-        if (aliens[0][4]->missile->pos.y >= ship->pos.y) {
-            if ((aliens[0][4]->missile->pos.x >= ship->pos.x - MISSILE_WIDTH) &&
-                (aliens[0][4]->missile->pos.x <= ship->pos.x + ship->getWidth())) {
+    for (y = 0; y < 5; y++) {
+        for (x = 0; x < 5; x++) {
+            if (aliens[x][y]->missile->visible && !(ship->isHit())) {
+                if (aliens[x][y]->missile->pos.y >= ship->pos.y) {
+                    if ((aliens[x][y]->missile->pos.x >= ship->pos.x - MISSILE_WIDTH) &&
+                (aliens[x][y]->missile->pos.x <= ship->pos.x + ship->getWidth())) {
                 // Ship hit!
                 ship->beenHit();
+                    }
+                }
             }
         }
     }
@@ -129,11 +144,6 @@ void updateAliens(int *speed, int *direction) {
         for (y = 0; y < 5; y++) {
             for (x = 0; x < 5; x++) {
                 aliens[x][y]->moveDown(ALIEN_GAP_Y);
-                if (!aliens[0][4]->isHit()) {
-                    aliens[0][4]->missile->visible = 1;
-                    aliens[0][4]->missile->pos.x = aliens[0][4]->pos.x+16;
-                    aliens[0][4]->missile->pos.y = aliens[0][4]->pos.y+40;
-                }
             }
         }
 
@@ -151,6 +161,26 @@ void updateAliens(int *speed, int *direction) {
             for (x = 0; x < 5; x++) {
                 aliens[x][y]->move(*direction);
             }
+        }
+    }
+
+    // Check if due to drop bomb...
+    for (y = 0; y < 5; y++) {
+        for (x = 0; x < 5; x++) {
+            if (aliens[x][y]->isBomber()) {
+                aliens[x][y]->bombTimer--;
+                if (aliens[x][y]->bombTimer == 0) {
+                    // Drop bomb
+                    if (!aliens[x][y]->isHit()) {
+                        aliens[x][y]->missile->visible = 1;
+                        aliens[x][y]->missile->pos.x = aliens[x][y]->pos.x+16;
+                        aliens[x][y]->missile->pos.y = aliens[x][y]->pos.y+40;
+                    }
+
+                    // Re-set timer
+                    aliens[y][x]->setBomber();
+                }
+            } 
         }
     }
 }
@@ -208,28 +238,23 @@ int main(int argc, char* args[])
     for (row = 0; row < 5; row++) {
 
         if (row == 0) {
-            //strcpy(image1, "images/alien_blue_1.png");
-            //strcpy(image2, "images/alien_blue_2.png");
-            //strcpy(explosion, "images/alien_explosion.png");
             type = ALIEN_TYPE_TOP;
         }
 
         if ((row == 1) || (row == 2)) {
-            //strcpy(image1, "images/alien_green_1.png");
-            //strcpy(image2, "images/alien_green_2.png");
-            //strcpy(explosion, "images/alien_green_explosion.png");
             type = ALIEN_TYPE_MIDDLE;
         }
         if ((row == 3) || (row == 4)) {
-            //strcpy(image1, "images/alien_purple_1.png");
-            //strcpy(image2, "images/alien_purple_2.png");
-            //strcpy(explosion, "images/alien_purple_explosion.png");
             type = ALIEN_TYPE_BOTTOM;
         }
 
 
         for (col = 0; col < 5; col++) {
-            aliens[col][row] = new Alien((SCREEN_WIDTH/2-16)+((32+ALIEN_GAP_X)*col), 10+20+((20+ALIEN_GAP_Y)*row), 50, type);
+            aliens[row][col] = new Alien((SCREEN_WIDTH/2-16)+((32+ALIEN_GAP_X)*col), 10+20+((20+ALIEN_GAP_Y)*row), 50, type);
+            if (row == 4) {
+                // The bottom row are the bombers.
+                aliens[col][row]->setBomber();
+            }
         }
     }
 
@@ -282,14 +307,16 @@ int main(int argc, char* args[])
         ship->missile->move();
         ship->move();
 
-         
-
 	if ((!paused) && (speed++ == alienSpeed)) {
             updateAliens(&alienSpeed, &alienDirection);
 	    speed = 0;
         }
 
-        aliens[0][4]->missile->move();
+        for (col=0; col < 5; col++) {
+            for (row=0; row < 5; row++) {
+                aliens[row][col]->missile->move();
+            }
+        }
 
         collisionDetection();
 

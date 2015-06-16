@@ -46,6 +46,7 @@ Alien::Alien(int startX, int startY, int value, ALIEN_TYPE type) {
     hit = false;
     img_cur = img_a;
     missile = new AlienMissile();
+    bomber = false;
 }
 
 int Alien::getHeight(void) {
@@ -134,4 +135,9 @@ void Alien::moveDown(int gap) {
 
 bool Alien::isBomber() {
     return bomber;
+}
+
+void Alien::setBomber() {
+    bomber = true;
+    bombTimer = rand() % 40;
 }
