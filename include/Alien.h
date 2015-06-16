@@ -35,5 +35,6 @@ public:
     void moveDown(int);
     bool isBomber(void);
     void setBomber(void);
+    void initialise(int,int);
     int bombTimer;
 };

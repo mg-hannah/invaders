@@ -19,10 +19,25 @@ int speed;
 int alienDirection;
 int score;
 TTF_Font *font;
-SDL_Surface *text;
+SDL_Surface *text, *gameOverMessage;
 bool paused;
 bool gameOver;
+int hits;
+int alienSpeed;
+bool quit;
 
+void drawGameOverMessage(void) {
+    SDL_Rect msgPos;
+    char message[] = "Game Over";
+
+    msgPos.x = 300;
+    msgPos.y = 300;
+
+    SDL_Color text_color = {255, 255, 255};
+    gameOverMessage = TTF_RenderText_Solid(font, message, text_color);
+
+    SDL_BlitSurface(gameOverMessage, NULL, screen, &msgPos);
+}
 
 void drawScore(void) {
    SDL_Rect scorePos;
@@ -80,6 +95,11 @@ void drawScreen(void) {
         pos.x = SCREEN_WIDTH-(x*((ship->getWidth()+2)));
         SDL_BlitSurface(ship->getImage(), NULL, screen, &pos);
     }
+
+    // Game over message
+    if (gameOver) {
+        drawGameOverMessage();
+    }
 }
 
 void collisionDetection() {
@@ -97,6 +117,8 @@ void collisionDetection() {
                 if (x > 0) {
                     aliens[x-1][y]->setBomber();
                 }
+
+                hits++;
             }
         }
     }
@@ -185,20 +207,41 @@ void updateAliens(int *speed, int *direction) {
     }
 }
 
+void initialiseGame() {
+
+    int x,y;
+
+    // Initialise our game variables
+    alienDirection = DIR_RIGHT;
+    alienSpeed = 10;
+    quit = false;
+    score = 0; 
+    paused = false;
+    gameOver = false;
+    hits = 0;
+
+    for (y = 0; y < 5; y++) {
+        for (x = 0; x < 5; x++) {
+            aliens[x][y]->initialise((SCREEN_WIDTH/2-16)+((32+ALIEN_GAP_X)*y), 10+20+((20+ALIEN_GAP_Y)*x));
+        }
+    }
+
+    // The bottom row are the bombers
+    for (x = 0; x < 5; x++) {
+        aliens[x][4]->setBomber();
+    }
+
+    ship->initialise();
+}
+
 int main(int argc, char* args[])
 {
-    bool quit;
     SDL_Event event;
     int start;
     int x, y;
     int row, col;
-    char image1[50];
-    char image2[50];
-    char explosion[50];
     ALIEN_TYPE type;
     bool dirChanged;
-    bool newRow;
-    int alienSpeed;
 
     // Start SDL
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -240,7 +283,6 @@ int main(int argc, char* args[])
         if (row == 0) {
             type = ALIEN_TYPE_TOP;
         }
-
         if ((row == 1) || (row == 2)) {
             type = ALIEN_TYPE_MIDDLE;
         }
@@ -251,21 +293,10 @@ int main(int argc, char* args[])
 
         for (col = 0; col < 5; col++) {
             aliens[row][col] = new Alien((SCREEN_WIDTH/2-16)+((32+ALIEN_GAP_X)*col), 10+20+((20+ALIEN_GAP_Y)*row), 50, type);
-            if (row == 4) {
-                // The bottom row are the bombers.
-                aliens[col][row]->setBomber();
-            }
         }
     }
 
-    // Initialise our game variables
-    alienDirection = DIR_RIGHT;
-    alienSpeed = 10;
-    newRow = false;
-    quit = false;
-    score = 0; 
-    paused = false;
-    gameOver = false;
+    initialiseGame();
 
     while (!quit) {
 
@@ -290,6 +321,9 @@ int main(int argc, char* args[])
 				if (event.key.keysym.sym == SDLK_ESCAPE) {
 				    quit = true;
 				}
+				if (event.key.keysym.sym == SDLK_n) {
+                                    if (gameOver) initialiseGame();
+				}
                                 paused = false;
 				break;
 		case SDL_KEYUP:
@@ -301,45 +335,53 @@ int main(int argc, char* args[])
 				}
             }
 
-        }
+        }  
 
-        // Update our ship and missile
-        ship->missile->move();
-        ship->move();
+        if (!gameOver) {
 
-	if ((!paused) && (speed++ == alienSpeed)) {
-            updateAliens(&alienSpeed, &alienDirection);
-	    speed = 0;
-        }
+            // Update our ship and missile
+            ship->missile->move();
+            ship->move();
 
-        for (col=0; col < 5; col++) {
-            for (row=0; row < 5; row++) {
-                aliens[row][col]->missile->move();
+	    if ((!paused) && (speed++ == alienSpeed)) {
+                updateAliens(&alienSpeed, &alienDirection);
+	        speed = 0;
             }
-        }
 
-        collisionDetection();
-
-        for (y = 0; y < 5; y++) {
-            for (x = 0; x < 5; x++) {
-		aliens[x][y]->update();
+            for (col=0; col < 5; col++) {
+                for (row=0; row < 5; row++) {
+                    aliens[row][col]->missile->move();
+                }
             }
+
+            collisionDetection();
+
+            for (y = 0; y < 5; y++) {
+                for (x = 0; x < 5; x++) {
+		    aliens[x][y]->update();
+                }
+            }
+            ship->update();
+
+            if ((ship->isHit()) && (ship->visible == 0)) {
+                ship->reset();
+                paused = true;
+            }
+
+            // Check if game over
+            if ((hits == 25) || (ship->getLives() == 0)) {
+                gameOver = true;
+            }
+
+            // Clear the screen
+            SDL_FillRect(screen, NULL,0);
+
+            // Render the screen
+            drawScreen();
+
+            // Update the screen
+            SDL_Flip(screen);
         }
-        ship->update();
-
-        if ((ship->isHit()) && (ship->visible == 0)) {
-            ship->reset();
-            paused = true;
-        }
-
-        // Clear the screen
-        SDL_FillRect(screen, NULL,0);
-
-        // Render the screen
-        drawScreen();
-
-        // Update the screen
-        SDL_Flip(screen);
 
         // Delay for the appropriate amount of time
         if (1000/FPS > (SDL_GetTicks() - start)) {

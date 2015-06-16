@@ -26,4 +26,5 @@ public:
     void reset(void);
     int getLives(void);
     SDL_Surface *getImage(void);
+    void initialise(void);
 };

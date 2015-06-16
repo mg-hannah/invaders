@@ -8,6 +8,15 @@
 
 extern Ship *ship;
 
+void Alien::initialise(int startX, int startY) {
+    pos.x = startX;
+    pos.y = startY;
+    visible = 1;
+    hit = false;
+    bomber = false;
+    img_cur = img_a;
+}
+
 Alien::Alien(int startX, int startY, int value, ALIEN_TYPE type) {
 
     char image_1[50];
@@ -39,14 +48,9 @@ Alien::Alien(int startX, int startY, int value, ALIEN_TYPE type) {
     img_explosion = SDL_DisplayFormatAlpha(img_explosion);
 
     // Initialise our variables
-    pos.x = startX;
-    pos.y = startY;
     points = value;
-    visible = 1;
-    hit = false;
-    img_cur = img_a;
     missile = new AlienMissile();
-    bomber = false;
+    initialise(startX, startY);
 }
 
 int Alien::getHeight(void) {

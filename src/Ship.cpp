@@ -8,29 +8,27 @@
 extern Missile *missile;
 extern SDL_Surface *screen;
 
-Ship::Ship(void) {
-
-    // Initialise position
+void Ship::initialise(void) {
     pos.x = SCREEN_WIDTH/2 - 16;
     pos.y = SCREEN_HEIGHT - 32 - 10;
-
     movLeft = false;
     movRight = false;
+    cur_img = img;
+    visible = 1;
+    hit = false;
+    lives = 3;
+}
+
+Ship::Ship(void) {
 
     // Load the image
     img = IMG_Load("images/ship.png");
     img = SDL_DisplayFormatAlpha(img);
-
     explosion = IMG_Load("images/alien_explosion.png");
     explosion = SDL_DisplayFormatAlpha(explosion);
-
-    cur_img = img;
-
     missile = new Missile();
-    visible = 1;
-    hit = false;
 
-    lives = 3;
+    initialise();
 }
 
 void Ship::fire(void) {
