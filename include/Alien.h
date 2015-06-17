@@ -10,12 +10,12 @@ class Alien {
 
 private:
     bool hit;
-    bool bomber;
     SDL_Surface *img_a;
     SDL_Surface *img_b;
     SDL_Surface *img_cur;
     SDL_Surface *img_explosion;
     int points;
+    bool bomber;
 
 public:
     SDL_Rect pos;

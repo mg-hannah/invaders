@@ -17,3 +17,7 @@ Shield::Shield(int x, int y) {
 void Shield::draw(void) {
     SDL_BlitSurface(img, NULL, screen, &pos);
 }
+
+int Shield::getWidth(void) {
+    return img->w;
+}

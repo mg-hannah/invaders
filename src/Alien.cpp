@@ -88,9 +88,10 @@ bool Alien::collissionDetection(void) {
             if (((ship->missile->pos.x+MISSILE_WIDTH) >= pos.x) &&
                 (ship->missile->pos.x <= (pos.x + 32))) {
                 visible = 5;
-                 hit = true;
+                hit = true;
                 img_cur = img_explosion;
                 ship->missile->visible = 0;
+                bomber = false;
                 return true;
             }
         }
@@ -137,11 +138,11 @@ void Alien::moveDown(int gap) {
     pos.y += 52;
 }
 
-bool Alien::isBomber() {
+bool Alien::isBomber(void) {
     return bomber;
 }
 
 void Alien::setBomber() {
     bomber = true;
-    bombTimer = rand() % 40;
+    bombTimer = rand() % 35;
 }

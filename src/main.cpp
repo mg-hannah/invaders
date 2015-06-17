@@ -25,6 +25,7 @@ bool gameOver;
 int hits;
 int alienSpeed;
 bool quit;
+int lockout;
 
 void drawGameOverMessage(void) {
     SDL_Rect msgPos;
@@ -61,8 +62,8 @@ void drawScreen(void) {
     ship->draw();
 
     // Draw the aliens  
-    for (y = 0; y < 5; y++) { 
-        for (x = 0; x < 5; x++) { 
+    for (x = 0; x < 5; x++) { 
+        for (y = 0; y < 5; y++) { 
             aliens[x][y]->draw(screen);
         }
     }
@@ -104,34 +105,55 @@ void drawScreen(void) {
 
 void collisionDetection() {
 
-    int x,y;
+    int x,y,z, isBomber;
 
-    // Aliens and missile
     for (y = 0; y < 5; y++) {
         for (x = 0; x < 5; x++) {
-            if (aliens[x][y]->collissionDetection()) {
-		score += aliens[x][y]->getPoints();
+
+            // Aliens and missile
+            isBomber = aliens[y][x]->isBomber();
+            if (aliens[y][x]->collissionDetection()) {
+		score += aliens[y][x]->getPoints();
 
                 // If this alien is hit, need to promote the one above
                 // to be the bomber.
-                if (x > 0) {
-                    aliens[x-1][y]->setBomber();
+                if (isBomber) {
+                    z = y-1;
+                    for (z=y-1; z >= 0; z--) {
+                        if (!aliens[z][x]->isHit()) {
+                            printf("Set bomber: %d %d\n", z, x);
+                            aliens[z][x]->setBomber();
+                            break;
+                        }
+                    }
+                     
                 }
 
                 hits++;
             }
-        }
-    }
 
-    // Ship and alien missiles
-    for (y = 0; y < 5; y++) {
-        for (x = 0; x < 5; x++) {
+            // Ship and alien missiles
             if (aliens[x][y]->missile->visible && !(ship->isHit())) {
                 if (aliens[x][y]->missile->pos.y >= ship->pos.y) {
                     if ((aliens[x][y]->missile->pos.x >= ship->pos.x - MISSILE_WIDTH) &&
                 (aliens[x][y]->missile->pos.x <= ship->pos.x + ship->getWidth())) {
                 // Ship hit!
                 ship->beenHit();
+                lockout = 90;
+                    }
+                }
+            }
+
+            // Shield and alien missile
+            for (z = 0; z < 4; z++) {
+                if ((aliens[x][y]->missile->visible) && (aliens[x][y]->missile->pos.y >= shield[z]->pos.y)) {
+                    if ((aliens[x][y]->missile->pos.x >=
+                         shield[x]->pos.x - MISSILE_WIDTH) &&
+                        (aliens[x][y]->missile->pos.x <=
+                         shield[z]->pos.x + shield[z]->getWidth())) {
+                        aliens[x][y]->missile->visible = 0;
+                        //printf("Debug: Missle %d %d      Shield %d %d\n", aliens[x][y]->pos.x, aliens[x][y]->pos.x+MISSILE_WIDTH, shield[z]->pos.x, shield[z]->pos.x+shield[x]->getWidth());
+                    //lockout = 60;
                     }
                 }
             }
@@ -189,18 +211,18 @@ void updateAliens(int *speed, int *direction) {
     // Check if due to drop bomb...
     for (y = 0; y < 5; y++) {
         for (x = 0; x < 5; x++) {
-            if (aliens[x][y]->isBomber()) {
+            if ((!aliens[x][y]->isHit()) && (aliens[x][y]->isBomber())) {
                 aliens[x][y]->bombTimer--;
                 if (aliens[x][y]->bombTimer == 0) {
                     // Drop bomb
-                    if (!aliens[x][y]->isHit()) {
-                        aliens[x][y]->missile->visible = 1;
-                        aliens[x][y]->missile->pos.x = aliens[x][y]->pos.x+16;
-                        aliens[x][y]->missile->pos.y = aliens[x][y]->pos.y+40;
-                    }
+                    aliens[x][y]->missile->visible = 1;
+                    aliens[x][y]->missile->pos.x = aliens[x][y]->pos.x+16;
+                    aliens[x][y]->missile->pos.y = aliens[x][y]->pos.y+40;
 
                     // Re-set timer
-                    aliens[y][x]->setBomber();
+                            printf("Set bomber: (timer) %d %d\n", x, y);
+                    aliens[x][y]->setBomber();
+               
                 }
             } 
         }
@@ -219,6 +241,7 @@ void initialiseGame() {
     paused = false;
     gameOver = false;
     hits = 0;
+    lockout = 0;
 
     for (y = 0; y < 5; y++) {
         for (x = 0; x < 5; x++) {
@@ -228,7 +251,7 @@ void initialiseGame() {
 
     // The bottom row are the bombers
     for (x = 0; x < 5; x++) {
-        aliens[x][4]->setBomber();
+        aliens[4][x]->setBomber();
     }
 
     ship->initialise();
@@ -337,7 +360,7 @@ int main(int argc, char* args[])
 
         }  
 
-        if (!gameOver) {
+        if ((!gameOver) && !(lockout)) {
 
             // Update our ship and missile
             ship->missile->move();
@@ -365,7 +388,6 @@ int main(int argc, char* args[])
 
             if ((ship->isHit()) && (ship->visible == 0)) {
                 ship->reset();
-                paused = true;
             }
 
             // Check if game over
@@ -382,6 +404,20 @@ int main(int argc, char* args[])
             // Update the screen
             SDL_Flip(screen);
         }
+
+        if (lockout) {
+            lockout--;
+        }
+
+        printf("------------------\n");
+        for (x = 0; x < 5; x++) {
+            for (y = 0; y < 5; y++) {
+                if (aliens[x][y]->isBomber()) {
+                    printf("Bomber: row %d col %d\n", x, y);
+                }
+            }
+        }
+        printf("------------------\n");
 
         // Delay for the appropriate amount of time
         if (1000/FPS > (SDL_GetTicks() - start)) {

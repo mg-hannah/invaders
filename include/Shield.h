@@ -4,4 +4,5 @@ public:
     SDL_Surface *img;
     Shield(int, int);
     void draw(void);
+    int getWidth(void);
 };
